@@ -1,0 +1,56 @@
+syntax = "proto3";
+package chat;
+// Définition d'une énumération pour représenter le statut d'un utilisateur
+enum UserStatus {
+UNKNOWN = 0; // Statut inconnu (valeur par défaut)
+ACTIVE = 1; // Utilisateur actif
+INACTIVE = 2; // Utilisateur inactif
+}
+// Message représentant un utilisateur
+message User {
+string id = 1; // Identifiant unique de l'utilisateur
+string name = 2; // Nom de l'utilisateur
+string email = 3; // Adresse email
+UserStatus status = 4; // Statut de l'utilisateur (valeurs définies dans l'enum)
+}
+// Message représentant un message de chat
+message ChatMessage {
+string id = 1; // Identifiant du message
+string room_id = 2; // Identifiant de la salle de chat
+string sender_id = 3; // Identifiant de l'expéditeur
+string content = 4; // Contenu du message
+}
+// Message de requête pour récupérer un utilisateur
+message GetUserRequest {
+string user_id = 1; // Identifiant de l'utilisateur à récupérer
+}
+// Message de réponse contenant les informations d'un utilisateur
+message GetUserResponse {
+User user = 1; // L'utilisateur correspondant à la requête
+}
+// Message utilisé pour le streaming de chat.
+// L'utilisation de "oneof" permet d'étendre le schéma en ajoutant d'autrestypes d'événements ultérieurement.
+message ChatStream {
+oneof payload {
+ChatMessage chat_message = 1; // Un message de chat
+}
+}
+// Définition du service gRPC avec deux méthodes :
+// - GetUser pour obtenir les infos d'un utilisateur
+// - Chat pour le streaming bidirectionnel de messages de chat
+service ChatService {
+rpc GetUser(GetUserRequest) returns (GetUserResponse);
+rpc Chat(stream ChatStream) returns (stream ChatStream);
+rpc GetChatHistory(GetChatHistoryRequest) returns (GetChatHistoryResponse); // 👈
+
+}
+// Requête pour l'historique
+message GetChatHistoryRequest {
+  string room_id = 1;
+}
+
+// Réponse avec une liste de messages
+message GetChatHistoryResponse {
+  repeated ChatMessage messages = 1;
+}
+
